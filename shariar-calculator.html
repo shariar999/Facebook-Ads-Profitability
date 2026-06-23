@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Max CPS & Min ROAS Calculator | Shariar Mojumder</title>
+  <meta name="description" content="Free Facebook Ads Profitability Calculator — find your Max Cost Per Sale and Minimum ROAS after returns. By Shariar Mojumder." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── TOKENS ─── */
+    :root {
+      --bg:         #F0F4FF;
+      --card:       #FFFFFF;
+      --border:     #D6DFFF;
+      --border2:    #B8C5FF;
+      --ink:        #0E1330;
+      --ink2:       #3B4270;
+      --ink3:       #7A82A8;
+      --accent:     #2D4EFF;
+      --accent-d:   #1A35E0;
+      --accent-bg:  #EBF0FF;
+      --accent-bg2: #D6E0FF;
+      --green:      #0A8F5C;
+      --green-bg:   #E6F9F2;
+      --red:        #CC2B2B;
+      --red-bg:     #FFF0F0;
+      --yellow-bg:  #FFFBE6;
+      --yellow:     #B07800;
+      --mono:       'IBM Plex Mono', monospace;
+      --sans:       'IBM Plex Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ─── WRAPPER ─── */
+    .wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      margin-bottom: 24px;
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .header-eyebrow::before { content: '//'; opacity: .5; }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 4px;
+      letter-spacing: -.3px;
+    }
+    .header-sub {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--ink3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .header-sub::before { content: '//'; color: var(--accent); opacity: .6; }
+
+    /* ─── CURRENCY SWITCHER ─── */
+    .currency-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .cur-btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--ink2);
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .cur-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .cur-btn:hover:not(.active) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ─── SECTION LABEL ─── */
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      letter-spacing: .4px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .section-label::before { content: '//'; color: var(--accent); opacity: .6; }
+
+    /* ─── CARD ─── */
+    .card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    /* ─── INPUT GRID ─── */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink2);
+    }
+    .field .hint {
+      font-size: 11px;
+      color: var(--ink3);
+      margin-top: 2px;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap .sym {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink3);
+      pointer-events: none;
+      user-select: none;
+    }
+    .sym.l { left: 11px; }
+    .sym.r { right: 11px; }
+    .input-wrap input {
+      width: 100%;
+      height: 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink);
+      background: var(--bg);
+      padding: 0 38px;
+      outline: none;
+      transition: border-color .12s, background .12s, box-shadow .12s;
+      -moz-appearance: textfield;
+    }
+    .input-wrap input::-webkit-outer-spin-button,
+    .input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .input-wrap input:focus {
+      border-color: var(--accent);
+      background: var(--card);
+      box-shadow: 0 0 0 3px rgba(45,78,255,.1);
+    }
+    .input-wrap input.no-l { padding-left: 12px; }
+    .input-wrap input.no-r { padding-right: 12px; }
+
+    /* ─── RETURN INFO BAR ─── */
+    .return-bar {
+      background: var(--yellow-bg);
+      border: 1.5px solid #FFE08A;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--yellow);
+      line-height: 1.6;
+      margin-top: 14px;
+      font-family: var(--mono);
+    }
+    .return-bar span { font-weight: 600; color: var(--ink); }
+
+    /* ─── RESULTS PAIR ─── */
+    .results-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .result-box {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 16px 14px;
+    }
+    .result-box.primary {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+    .result-box-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink3);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .result-box.primary .result-box-label { color: var(--accent-d); }
+    .result-box-val {
+      font-family: var(--mono);
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .result-box.primary .result-box-val { color: var(--accent); }
+    .result-box-sub {
+      font-size: 11px;
+      color: var(--ink3);
+      line-height: 1.4;
+    }
+    .result-box.primary .result-box-sub { color: var(--accent-d); opacity: .8; }
+
+    /* ─── MINI STATS ROW ─── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 10.5px;
+      color: var(--ink3);
+      line-height: 1.3;
+    }
+    .stat-val.neg { color: var(--red); }
+    .stat-val.pos { color: var(--green); }
+
+    /* ─── BREAKDOWN TABLE ─── */
+    .breakdown-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .breakdown-header {
+      background: var(--bg);
+      border-bottom: 1.5px solid var(--border);
+      padding: 11px 18px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .breakdown-header::before { content: '//'; color: var(--accent); opacity: .6; }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-row.total {
+      background: var(--accent-bg);
+      border-top: 2px solid var(--accent);
+      font-weight: 700;
+    }
+    .breakdown-row .row-label { color: var(--ink2); }
+    .breakdown-row .row-label .tag {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--ink3);
+      margin-left: 4px;
+    }
+    .breakdown-row .row-val {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .breakdown-row .row-val.minus { color: var(--red); }
+    .breakdown-row .row-val.plus  { color: var(--green); }
+    .breakdown-row .row-val.accent { color: var(--accent); }
+    .breakdown-row .row-pct {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink3);
+      margin-left: 6px;
+    }
+
+    /* ─── PIE / DONUT CHART ─── */
+    .chart-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .chart-wrap {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .donut-svg { flex-shrink: 0; }
+    .legend { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+    }
+    .legend-dot {
+      width: 11px; height: 11px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .legend-label { color: var(--ink2); flex: 1; }
+    .legend-pct {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink3);
+      padding-top: 8px;
+      font-family: var(--mono);
+    }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer .sep { margin: 0 6px; opacity: .4; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 520px) {
+      .input-grid { grid-template-columns: 1fr; }
+      .results-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .chart-wrap { flex-direction: column; }
+      .header h1 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="header-eyebrow">Facebook Ads Profitability</div>
+    <h1>Max CPS &amp; Min ROAS Calculator</h1>
+    <div class="header-sub">Enter your product details → get real ad spend limits after returns</div>
+  </div>
+
+  <!-- ── CURRENCY ── -->
+  <div class="currency-row" id="cur-row">
+    <button class="cur-btn active" onclick="setCur('৳','BDT',this)">৳ BDT</button>
+    <button class="cur-btn" onclick="setCur('$','USD',this)">$ USD</button>
+    <button class="cur-btn" onclick="setCur('₹','INR',this)">₹ INR</button>
+    <button class="cur-btn" onclick="setCur('€','EUR',this)">€ EUR</button>
+    <button class="cur-btn" onclick="setCur('£','GBP',this)">£ GBP</button>
+  </div>
+
+  <!-- ── INPUTS ── -->
+  <div class="section-label">Product details</div>
+  <div class="card">
+    <div class="input-grid">
+
+      <div class="field">
+        <label>Product cost (COGS)</label>
+        <div class="input-wrap">
+          <span class="sym l" id="sym-cogs">৳</span>
+          <input type="number" id="cogs" min="0" step="1" value="500" oninput="calc()" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Selling price</label>
+        <div class="input-wrap">
+          <span class="sym l" id="sym-price">৳</span>
+          <input type="number" id="price" min="0" step="1" value="1200" oninput="calc()" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Other costs per order</label>
+        <div class="input-wrap">
+          <span class="sym l" id="sym-other">৳</span>
+          <input type="number" id="other" min="0" step="1" value="80" oninput="calc()" />
+        </div>
+        <div class="hint">delivery, packaging, etc.</div>
+      </div>
+
+      <div class="field">
+        <label>Return / Cancel rate</label>
+        <div class="input-wrap">
+          <input type="number" id="returnRate" min="0" max="99" step="1" value="15" class="no-l" oninput="calc()" />
+          <span class="sym r">%</span>
+        </div>
+        <div class="hint">% of orders returned or cancelled</div>
+      </div>
+
+      <div class="field">
+        <label>Target profit margin</label>
+        <div class="input-wrap">
+          <input type="number" id="targetMargin" min="0" max="99" step="1" value="10" class="no-l" oninput="calc()" />
+          <span class="sym r">%</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- return info bar -->
+    <div class="return-bar" id="return-bar">
+      For every <span id="rb-per">100</span> orders, <span id="rb-ret">15</span> return.
+      Effective revenue/order: <span id="rb-effrev">৳1,020</span> —
+      Return loss absorbed: <span id="rb-loss">−৳180</span> per order.
+    </div>
+  </div>
+
+  <!-- ── MAIN RESULTS ── -->
+  <div class="results-row">
+    <div class="result-box primary">
+      <div class="result-box-label">Max Cost Per Sale<br><span style="font-weight:400;opacity:.8" id="cps-sub">Ceiling ad spend per conversion to hit your 10% margin after 15% returns</span></div>
+      <div class="result-box-val" id="res-cps">৳0</div>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Minimum ROAS<br><span style="font-weight:400" id="roas-sub">Every ৳1 of ad spend must return at least Xx</span></div>
+      <div class="result-box-val" id="res-roas">0x</div>
+    </div>
+  </div>
+
+  <!-- ── MINI STATS ── -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" id="stat-effrev">৳0</div>
+      <div class="stat-label">Effective revenue</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val neg" id="stat-retloss">−৳0</div>
+      <div class="stat-label">Return loss/order</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val pos" id="stat-netmargin">0%</div>
+      <div class="stat-label">Net margin (no ads)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="stat-tgtprofit">৳0</div>
+      <div class="stat-label">Target profit</div>
+    </div>
+  </div>
+
+  <!-- ── BREAKDOWN TABLE ── -->
+  <div class="breakdown-card">
+    <div class="breakdown-header">Profit breakdown per order placed (incl. returns)</div>
+
+    <div class="breakdown-row">
+      <span class="row-label">Selling price</span>
+      <span class="row-val" id="br-price">৳1,200</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="row-label">
+        − Return / cancel loss
+        <span class="tag" id="br-ret-tag">15%</span>
+      </span>
+      <span class="row-val minus" id="br-retloss">−৳180</span>
+    </div>
+    <div class="breakdown-row" style="background:var(--bg);">
+      <span class="row-label">= Effective revenue per order</span>
+      <span class="row-val accent" id="br-effrev">৳1,020</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="row-label">− Product cost (COGS)</span>
+      <span class="row-val minus" id="br-cogs">−৳500</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="row-label">− Other costs</span>
+      <span class="row-val minus" id="br-other">−৳80</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="row-label">− Max ad spend (CPS)</span>
+      <span class="row-val minus accent" id="br-cps">−৳320</span>
+    </div>
+    <div class="breakdown-row total">
+      <span class="row-label">= Target profit</span>
+      <span class="row-val plus" id="br-profit">৳120</span>
+    </div>
+  </div>
+
+  <!-- ── DONUT CHART ── -->
+  <div class="chart-card">
+    <div class="breakdown-header" style="margin:-20px -20px 16px;border-radius:0;border-top:none;border-left:none;border-right:none;">Breakdown per order placed (incl. returns)</div>
+    <div class="chart-wrap">
+      <svg class="donut-svg" id="donut-svg" width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="54" fill="none" stroke="var(--bg)" stroke-width="28"/>
+        <!-- segments drawn by JS -->
+      </svg>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    Built for Facebook Ads marketers
+    <span class="sep">·</span>
+    Made by <a href="#" target="_blank" rel="noopener">Shariar Mojumder</a>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+  /* ─── STATE ─── */
+  var curSym = '৳';
+
+  function setCur(sym, code, btn) {
+    curSym = sym;
+    document.querySelectorAll('.cur-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calc();
+  }
+
+  /* ─── FORMAT ─── */
+  function f(n) {
+    return curSym + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+  }
+  function pct(n) { return n.toFixed(1) + '%'; }
+
+  /* ─── MAIN CALC ─── */
+  function calc() {
+    var cogs       = parseFloat(document.getElementById('cogs').value)        || 0;
+    var price      = parseFloat(document.getElementById('price').value)       || 0;
+    var other      = parseFloat(document.getElementById('other').value)       || 0;
+    var retRate    = parseFloat(document.getElementById('returnRate').value)   || 0;
+    var tgtMargin  = parseFloat(document.getElementById('targetMargin').value) || 0;
+
+    /* core maths — matching the reference exactly */
+    var retFrac     = retRate / 100;
+    var returnLoss  = price * retFrac;           // revenue lost per order placed
+    var effRev      = price - returnLoss;         // effective revenue per order placed
+    var targetProfit= price * (tgtMargin / 100); // desired profit per order placed
+    var maxCPS      = effRev - cogs - other - targetProfit;
+    if (maxCPS < 0) maxCPS = 0;
+
+    /* Min ROAS = selling price / maxCPS  (spend maxCPS, get price back) */
+    var minROAS = maxCPS > 0 ? price / maxCPS : 0;
+
+    /* net margin with zero ad spend */
+    var netNoAds = effRev > 0 ? ((effRev - cogs - other) / price) * 100 : 0;
+
+    /* ── update currency symbols ── */
+    ['sym-cogs','sym-price','sym-other'].forEach(function(id){
+      document.getElementById(id).textContent = curSym;
+    });
+
+    /* ── return bar ── */
+    var perHundred = 100;
+    var retCount   = Math.round(retRate);
+    document.getElementById('rb-per').textContent  = perHundred;
+    document.getElementById('rb-ret').textContent  = retCount;
+    document.getElementById('rb-effrev').textContent = f(effRev);
+    document.getElementById('rb-loss').textContent   = '−' + f(returnLoss);
+
+    /* ── main results ── */
+    document.getElementById('res-cps').textContent  = f(maxCPS);
+    document.getElementById('res-roas').textContent = minROAS > 0 ? minROAS.toFixed(2) + 'x' : '—';
+
+    /* sub-labels */
+    document.getElementById('cps-sub').textContent =
+      'Ceiling ad spend per conversion to hit your ' + tgtMargin + '% margin after ' + retRate + '% returns';
+    document.getElementById('roas-sub').textContent =
+      'Every ' + curSym + '1 of ad spend must return at least ' + (minROAS > 0 ? minROAS.toFixed(2) + 'x' : '—');
+
+    /* ── mini stats ── */
+    document.getElementById('stat-effrev').textContent    = f(effRev);
+    document.getElementById('stat-retloss').textContent   = '−' + f(returnLoss);
+    document.getElementById('stat-netmargin').textContent = pct(netNoAds);
+    document.getElementById('stat-tgtprofit').textContent = f(targetProfit);
+
+    /* ── breakdown table ── */
+    document.getElementById('br-price').textContent   = f(price);
+    document.getElementById('br-ret-tag').textContent = retRate + '%';
+    document.getElementById('br-retloss').textContent = '−' + f(returnLoss);
+    document.getElementById('br-effrev').textContent  = f(effRev);
+    document.getElementById('br-cogs').textContent    = '−' + f(cogs);
+    document.getElementById('br-other').textContent   = '−' + f(other);
+    document.getElementById('br-cps').textContent     = '−' + f(maxCPS);
+    document.getElementById('br-profit').textContent  = f(targetProfit);
+
+    /* ── donut chart ── */
+    drawDonut(returnLoss, cogs, other, maxCPS, targetProfit, price);
+  }
+
+  /* ─── DONUT ─── */
+  function drawDonut(retLoss, cogs, other, cps, profit, price) {
+    if (price <= 0) return;
+
+    var segments = [
+      { label: 'Return loss',  val: retLoss, color: '#F87171' },
+      { label: 'COGS',         val: cogs,    color: '#60A5FA' },
+      { label: 'Other costs',  val: other,   color: '#A78BFA' },
+      { label: 'Max ad spend', val: cps,     color: '#2D4EFF' },
+      { label: 'Profit',       val: profit,  color: '#34D399' },
+    ];
+
+    var total = segments.reduce(function(s, x){ return s + Math.max(x.val, 0); }, 0);
+    if (total <= 0) return;
+
+    var svg = document.getElementById('donut-svg');
+    /* clear old segments (keep index 0 = background circle) */
+    while (svg.children.length > 1) svg.removeChild(svg.lastChild);
+
+    var r = 54, strokeW = 28;
+    var circ = 2 * Math.PI * r;
+    var gapPx = 2;
+    /* cumulative offset — starts at 0 (12-o'clock after rotation) */
+    var cumFrac = 0;
+
+    segments.forEach(function(seg) {
+      var v = Math.max(seg.val, 0);
+      if (v <= 0) { cumFrac += 0; return; }
+      var frac = v / total;
+      var dashLen  = Math.max(frac * circ - gapPx, 0);
+      var dashGap  = circ - dashLen;
+      /* dashoffset: positive offset = rotate start clockwise */
+      var startOffset = circ - cumFrac * circ;
+
+      var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx', 70);
+      c.setAttribute('cy', 70);
+      c.setAttribute('r',  r);
+      c.setAttribute('fill', 'none');
+      c.setAttribute('stroke', seg.color);
+      c.setAttribute('stroke-width', strokeW);
+      c.setAttribute('stroke-dasharray', dashLen + ' ' + dashGap);
+      c.setAttribute('stroke-dashoffset', startOffset);
+      c.setAttribute('transform', 'rotate(-90 70 70)');
+      svg.appendChild(c);
+
+      cumFrac += frac;
+    });
+
+    /* legend */
+    var legend = document.getElementById('legend');
+    legend.innerHTML = '';
+    segments.forEach(function(seg) {
+      var v = Math.max(seg.val, 0);
+      var pctVal = total > 0 ? ((v / total) * 100).toFixed(1) : '0';
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML =
+        '<span class="legend-dot" style="background:' + seg.color + '"></span>' +
+        '<span class="legend-label">' + seg.label + '</span>' +
+        '<span class="legend-pct">' + pctVal + '%</span>';
+      legend.appendChild(item);
+    });
+  }
+
+  /* ─── INIT ─── */
+  calc();
+</script>
+</body>
+</html>
